@@ -1,0 +1,61 @@
+name: publish daichodo-validate
+
+# The hand-written validator. Useful on its own, no API key needed.
+#
+# One workflow per PyPI project, deliberately. A trusted publisher is keyed on
+# (owner, repo, workflow, environment), so two projects sharing one workflow
+# file collide - PyPI rejects the second with "a pending trusted publisher
+# matching this configuration has already been registered for a different
+# project name". Separate files make the tuples distinct without needing
+# GitHub Environments.
+#
+# Register the publisher at pypi.org with:
+#   owner: daichodo | repository: daichodo-python | workflow: publish-validate.yml
+
+on:
+  push:
+    tags: ['validate-v*']
+
+permissions:
+  contents: read
+  id-token: write   # PyPI trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Take the version from the tag
+        run: |
+          python - "packages/daichodo-validate/pyproject.toml" "${{ github.ref_name }}" <<'SCRIPT'
+          import pathlib, re, sys
+          manifest = pathlib.Path(sys.argv[1])
+          version = sys.argv[2].split("-v", 1)[1]
+          text = manifest.read_text(encoding="utf-8")
+          # Only the first `version =`; a dependency pin later in the file must
+          # not be rewritten.
+          text = re.sub(r'^version = ".*"$', 'version = "%s"' % version,
+                        text, count=1, flags=re.MULTILINE)
+          manifest.write_text(text, encoding="utf-8")
+          print("%s: %s" % (manifest, version))
+          SCRIPT
+
+      - name: Test
+        # The validator's tests run whichever package is released: both assert
+        # against the same check-digit vectors, and a release should not proceed
+        # if that contract is broken.
+        run: |
+          pip install -e packages/daichodo-validate pytest
+          pytest packages/daichodo-validate/tests -q
+
+      - name: Build
+        run: |
+          pip install build
+          python -m build --outdir dist packages/daichodo-validate
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
