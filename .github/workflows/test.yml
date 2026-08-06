@@ -1,0 +1,25 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      # 3.9 is the declared floor. Testing only the newest would let a
+      # newer-syntax change slip in and break the stated support range.
+      - run: pip install -e ./packages/daichodo-validate pytest
+      - run: pytest packages/daichodo-validate/tests -q

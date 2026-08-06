@@ -1,0 +1,37 @@
+name: no hand edits
+
+# Generated code is overwritten on every schema change, so a pull request
+# against it would be silently discarded. Fail loudly instead of wasting
+# someone's time.
+
+on:
+  pull_request:
+    paths:
+      - 'packages/daichodo/daichodo/**'
+
+permissions:
+  contents: read
+
+jobs:
+  reject:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          cat <<'MSG'
+          このプルリクエストは自動生成されたコードを変更しています。
+          packages/daichodo は API の OpenAPI スキーマから生成され、
+          リリースごとに上書きされるため、変更は失われます。
+          不具合はスキーマ側の問題です。Issue でご報告ください。
+
+          This pull request modifies packages/daichodo, which is generated from
+          the API's OpenAPI schema and regenerated on every release. Any change
+          here is overwritten and lost.
+
+          If the generated client is wrong, the schema is wrong - please open an
+          issue and it will be fixed at the source, which fixes every language's
+          SDK at once.
+
+          packages/daichodo-validate is hand-written and pull requests there are
+          welcome.
+          MSG
+          exit 1

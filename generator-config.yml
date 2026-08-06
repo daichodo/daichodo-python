@@ -1,0 +1,6 @@
+# Package identity for the generated client. Without these the generator names
+# it `daichodo-client` / `daichodo_client`; the published name is `daichodo`,
+# matching the npm package so the two SDKs are found under the same name.
+project_name_override: daichodo
+package_name_override: daichodo
+package_version_override: "0.1.0"

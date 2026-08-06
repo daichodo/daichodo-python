@@ -1,0 +1,31 @@
+[project]
+name = "daichodo-validate"
+version = "0.1.0"
+description = "Validate Japanese corporate numbers (法人番号) and qualified invoice registration numbers (登録番号). Zero dependencies, no network."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "Daichodo", email = "dev@daichodo.com" }]
+keywords = ["法人番号", "適格請求書", "インボイス", "japan", "corporate-number", "invoice", "validation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Japanese",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://daichodo.com"
+Source = "https://github.com/daichodo/daichodo-python"
+Issues = "https://github.com/daichodo/daichodo-python/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/daichodo_validate"]
