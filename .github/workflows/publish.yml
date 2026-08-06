@@ -1,0 +1,63 @@
+name: publish
+
+# Publishes both packages to PyPI on a version tag.
+#
+# The tag is the single source of truth for the version. Manifests hold a
+# placeholder and are never hand-bumped - forgetting to bump is the most common
+# release failure, and it surfaces as a duplicate-version rejection at the very
+# end, after build and tests have passed. A git tag can only exist once, so the
+# collision becomes impossible rather than merely unlikely.
+#
+# This matters more here than for npm: the generated package's version comes
+# from generator-config.yml, so a hand-edited pyproject.toml would be
+# overwritten on the next schema change.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write   # PyPI trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Take the version from the tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Publishing $VERSION"
+          python - "$VERSION" <<'PY'
+          import pathlib, re, sys
+          version = sys.argv[1]
+          for manifest in pathlib.Path("packages").glob("*/pyproject.toml"):
+              text = manifest.read_text(encoding="utf-8")
+              # Only the first `version =` under [project]; a dependency pin
+              # elsewhere in the file must not be rewritten.
+              text = re.sub(r'^version = ".*"$', f'version = "{version}"',
+                            text, count=1, flags=re.MULTILINE)
+              manifest.write_text(text, encoding="utf-8")
+              print(f"{manifest}: {version}")
+          PY
+
+      - name: Test before publishing
+        run: |
+          pip install -e packages/daichodo-validate pytest
+          pytest packages/daichodo-validate/tests -q
+
+      - name: Build
+        run: |
+          pip install build
+          python -m build --outdir dist packages/daichodo-validate
+          python -m build --outdir dist packages/daichodo
+
+      - name: Publish
+        # Trusted publishing - no long-lived token to rotate or leak. Configure
+        # the publisher at pypi.org for each project first.
+        uses: pypa/gh-action-pypi-publish@release/v1
