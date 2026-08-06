@@ -17,6 +17,7 @@ def _get_kwargs(
     *,
     on: datetime.date,
 ) -> dict[str, Any]:
+
     params: dict[str, Any] = {}
 
     json_on = on.isoformat()
