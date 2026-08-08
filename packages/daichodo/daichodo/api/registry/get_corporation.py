@@ -58,7 +58,7 @@ def _build_response(
 def sync_detailed(
     corporate_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Response[Corporation | HTTPValidationError]:
     """Look up a corporate number
 
@@ -89,7 +89,7 @@ def sync_detailed(
 def sync(
     corporate_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Corporation | HTTPValidationError | None:
     """Look up a corporate number
 
@@ -115,7 +115,7 @@ def sync(
 async def asyncio_detailed(
     corporate_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Response[Corporation | HTTPValidationError]:
     """Look up a corporate number
 
@@ -144,7 +144,7 @@ async def asyncio_detailed(
 async def asyncio(
     corporate_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Corporation | HTTPValidationError | None:
     """Look up a corporate number
 

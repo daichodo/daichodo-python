@@ -69,7 +69,7 @@ def _build_response(
 def sync_detailed(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
     on: datetime.date,
 ) -> Response[HTTPValidationError | ValidityResponse]:
     """Was this registration valid on a given date?
@@ -107,7 +107,7 @@ def sync_detailed(
 def sync(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
     on: datetime.date,
 ) -> HTTPValidationError | ValidityResponse | None:
     """Was this registration valid on a given date?
@@ -140,7 +140,7 @@ def sync(
 async def asyncio_detailed(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
     on: datetime.date,
 ) -> Response[HTTPValidationError | ValidityResponse]:
     """Was this registration valid on a given date?
@@ -176,7 +176,7 @@ async def asyncio_detailed(
 async def asyncio(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
     on: datetime.date,
 ) -> HTTPValidationError | ValidityResponse | None:
     """Was this registration valid on a given date?

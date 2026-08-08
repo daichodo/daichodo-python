@@ -58,7 +58,7 @@ def _build_response(
 def sync_detailed(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Response[HTTPValidationError | InvoiceIssuer]:
     """Look up a qualified invoice issuer
 
@@ -91,7 +91,7 @@ def sync_detailed(
 def sync(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> HTTPValidationError | InvoiceIssuer | None:
     """Look up a qualified invoice issuer
 
@@ -119,7 +119,7 @@ def sync(
 async def asyncio_detailed(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> Response[HTTPValidationError | InvoiceIssuer]:
     """Look up a qualified invoice issuer
 
@@ -150,7 +150,7 @@ async def asyncio_detailed(
 async def asyncio(
     registration_number: str,
     *,
-    client: AuthenticatedClient | Client,
+    client: AuthenticatedClient,
 ) -> HTTPValidationError | InvoiceIssuer | None:
     """Look up a qualified invoice issuer
 
