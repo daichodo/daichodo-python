@@ -4,6 +4,7 @@ from .corporation import Corporation
 from .health import Health
 from .http_validation_error import HTTPValidationError
 from .invoice_issuer import InvoiceIssuer
+from .me import Me
 from .validate_request import ValidateRequest
 from .validate_response import ValidateResponse
 from .validation_error import ValidationError
@@ -15,6 +16,7 @@ __all__ = (
     "Health",
     "HTTPValidationError",
     "InvoiceIssuer",
+    "Me",
     "ValidateRequest",
     "ValidateResponse",
     "ValidationError",
