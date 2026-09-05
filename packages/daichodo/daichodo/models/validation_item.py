@@ -20,8 +20,11 @@ class ValidationItem:
         reason (None | str | Unset): Why the number is invalid. Absent on a valid result. Note that the check digit
             applies to every registration number, sole traders included - measured over the whole register, 5,421,496
             numbers, zero exceptions - so a failed check digit is a typo or a fabrication rather than an individual.
-        corporate_number (None | str | Unset): The 13-digit 法人番号 this number corresponds to, when it has one. Null for
-            sole traders, whose registration numbers are not derived from a corporate number.
+        corporate_number (None | str | Unset): The 13-digit body of a valid registration number. For a corporation this
+            IS its 法人番号. For a sole trader it is not, and it will not be found in the corporate register - but it is still
+            returned, because both kinds satisfy the same check digit and the number alone cannot tell you which you are
+            holding. Only a lookup can. Null only when the number is invalid, or when a bare 13-digit corporate number was
+            supplied rather than a T-prefixed one.
     """
 
     value: str
