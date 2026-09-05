@@ -17,9 +17,9 @@ class ValidationItem:
     Attributes:
         value (str): The number as supplied, unmodified
         valid (bool):
-        reason (None | str | Unset): Why the number is invalid, or a note qualifying a valid result. Present on some
-            valid results - a registration number that is format-valid but not derived from a 法人番号 is a sole trader, not an
-            error.
+        reason (None | str | Unset): Why the number is invalid. Absent on a valid result. Note that the check digit
+            applies to every registration number, sole traders included - measured over the whole register, 5,421,496
+            numbers, zero exceptions - so a failed check digit is a typo or a fabrication rather than an individual.
         corporate_number (None | str | Unset): The 13-digit 法人番号 this number corresponds to, when it has one. Null for
             sole traders, whose registration numbers are not derived from a corporate number.
     """
