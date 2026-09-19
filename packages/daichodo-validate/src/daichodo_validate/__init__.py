@@ -9,8 +9,16 @@ It tells you whether a number is **well-formed**, not whether it is
 **registered**. For that you need a lookup: https://daichodo.com
 
 This is a copy of the implementation the Daichodo API runs, not a
-reimplementation. Both assert against the same `check-digit-vectors.json`, so
-the two cannot drift apart without a test failing on one side or the other.
+reimplementation. Both assert against the same `check-digit-vectors.json`.
+
+**That guarantee is narrower than it reads, and this file is the proof.** The
+vectors cover `check_digit` — the arithmetic — and nothing else. They say
+nothing about what `validate_registration_number` DOES with a failed digit, so
+when the API and the TypeScript package began rejecting those on 2026-09-05,
+this package went on accepting them and every shared vector still passed. The
+two drifted for two weeks with green tests on both sides, and it took someone
+installing from PyPI to notice. A test for the rejection branch now lives in
+`tests/test_validate.py`; do not assume the vectors cover behaviour.
 """
 from __future__ import annotations
 
@@ -23,6 +31,15 @@ REGISTRATION_NUMBER = re.compile(r"^T\d{13}$")
 
 @dataclass(frozen=True)
 class ValidationResult:
+    """The outcome of one check.
+
+    `corporate_number` is the 13-digit body of a valid number. For a
+    corporation it IS its 法人番号. For a sole trader it is not, and it will not
+    be found in the corporate register — both kinds satisfy the same check
+    digit, so the number alone cannot tell you which you are holding. Only a
+    register lookup can.
+    """
+
     value: str
     valid: bool
     reason: str | None = None
@@ -80,10 +97,35 @@ def validate_corporate_number(value: str) -> ValidationResult:
 def validate_registration_number(value: str) -> ValidationResult:
     """Validate a 適格請求書発行事業者 登録番号 (`T` + 13 digits).
 
-    For corporations the 13 digits are the 法人番号, so the check digit applies.
-    Individuals are assigned a number that is not derived from a 法人番号 and
-    carries no verifiable check digit — format is all that can be asserted, and
-    claiming otherwise would reject roughly half the register.
+    **The check digit applies to EVERY registration number, sole traders
+    included.** Corrected 2026-09-19 after measuring; the previous behaviour
+    accepted typos. The TypeScript twin was corrected on 2026-09-05 and this
+    one was not, so for two weeks the two official packages of the same product
+    returned opposite answers for the same number.
+
+    This function used to return ``valid=True`` whenever the check digit
+    failed, on the premise that sole traders "carry no verifiable check digit".
+    That premise is false. Measured over the whole invoice register — the 全件
+    of 2026-08-31 plus the newest 差分:
+
+        法人 corporations    2,679,571   100% pass the check digit
+        個人 sole traders    2,726,018   100% pass
+        人格のない社団等           7,937   100% pass
+
+    Zero exceptions in 5,421,496 numbers. The NTA draws sole-trader numbers
+    from the same check-digit scheme in a range disjoint from corporate 法人番号
+    (0 of 50,000 sampled sole-trader bodies appear in the 法人番号 register), so
+    the check digit is universal — it just does not tell you which kind of
+    entity you are holding.
+
+    The old escape hatch protected nothing real and admitted everything fake:
+    ``T1234567890123``, and a one-digit typo of a genuine number, both returned
+    valid — while the SAME 13 digits without the ``T`` were correctly rejected.
+
+    ``corporate_number`` is the 13-digit body. For a corporation it IS the
+    法人番号. For a sole trader it is not, and it will not be found in the
+    corporate register. **You cannot tell which from the number alone**; only a
+    register lookup can.
     """
     cleaned = _clean(value).upper()
 
@@ -95,9 +137,9 @@ def validate_registration_number(value: str) -> ValidationResult:
     if int(body[0]) == expected:
         return ValidationResult(value, True, corporate_number=body)
 
-    # Format-valid but not a corporate number. Sole traders live here, so this
-    # is not an error — only an absence of a corporate number to join on.
-    return ValidationResult(value, True, reason="not derived from a 法人番号")
+    return ValidationResult(
+        value, False, f"check digit is {body[0]}, expected {expected}"
+    )
 
 
 def _clean(value: str) -> str:

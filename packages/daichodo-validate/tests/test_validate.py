@@ -68,12 +68,43 @@ def test_a_flipped_check_digit_is_rejected():
     assert "check digit" in result.reason
 
 
-def test_sole_traders_are_valid_without_a_corporate_number():
-    # Roughly half the register. Rejecting them would reject half of everything.
-    result = validate_registration_number("T1234567890123")
-    assert result.valid
-    assert result.corporate_number is None
-    assert "法人番号" in result.reason
+def test_a_failed_check_digit_is_rejected_sole_trader_or_not():
+    """The branch the shared vectors do not cover, and this is why it exists.
+
+    Until 0.2.0 this asserted the opposite - that T1234567890123 was VALID,
+    excused as a sole trader. The premise was measured false: all 5,421,496
+    numbers in the register satisfy the check digit, corporations, sole traders
+    and 人格のない社団等 alike. So the escape hatch protected nothing real and
+    admitted every typo and every fabrication.
+
+    The test pinning that behaviour is exactly why the drift went unnoticed.
+    check-digit-vectors.json is shared with the API and the TypeScript package
+    and covers `check_digit` alone - the arithmetic - so when the other two
+    started rejecting these on 2026-09-05, every shared vector still passed
+    here. Green tests on both sides, opposite answers from the same input, for
+    two weeks. Assert behaviour, not just arithmetic.
+    """
+    fabricated = validate_registration_number("T1234567890123")
+    assert not fabricated.valid
+    assert fabricated.reason == "check digit is 1, expected 9"
+    assert fabricated.corporate_number is None
+
+    # A one-digit typo of a real number, which is the common case in the wild.
+    typo = validate_registration_number("T1010001153226")
+    assert not typo.valid
+    assert "check digit" in typo.reason
+
+
+def test_the_t_prefix_does_not_change_the_verdict():
+    """The old bug's sharpest edge: the SAME digits disagreed with themselves.
+
+    T1234567890123 returned valid while 1234567890123 was correctly rejected,
+    because only the registration-number path carried the escape hatch.
+    """
+    assert validate_registration_number("T1234567890123").valid is False
+    assert validate_corporate_number("1234567890123").valid is False
+    assert is_valid("T1234567890123") is False
+    assert is_valid("1234567890123") is False
 
 
 def test_corporate_registration_numbers_expose_their_corporate_number():

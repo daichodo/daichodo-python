@@ -1,6 +1,6 @@
 [project]
 name = "daichodo-validate"
-version = "0.1.0"
+version = "0.2.0"
 description = "Validate Japanese corporate numbers (法人番号) and qualified invoice registration numbers (登録番号). Zero dependencies, no network."
 readme = "README.md"
 license = { text = "MIT" }
