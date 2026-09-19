@@ -23,8 +23,8 @@ class ValidationItem:
         corporate_number (None | str | Unset): The 13-digit body of a valid registration number. For a corporation this
             IS its 法人番号. For a sole trader it is not, and it will not be found in the corporate register - but it is still
             returned, because both kinds satisfy the same check digit and the number alone cannot tell you which you are
-            holding. Only a lookup can. Null only when the number is invalid, or when a bare 13-digit corporate number was
-            supplied rather than a T-prefixed one.
+            holding. Only a lookup can. Null only when the number is invalid - a bare 13-digit corporate number is echoed
+            here too, since it IS the body.
     """
 
     value: str
