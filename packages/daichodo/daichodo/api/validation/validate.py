@@ -5,7 +5,7 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.http_validation_error import HTTPValidationError
+from ...models.error_response import ErrorResponse
 from ...models.validate_request import ValidateRequest
 from ...models.validate_response import ValidateResponse
 from ...types import Response
@@ -32,16 +32,21 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> HTTPValidationError | ValidateResponse | None:
+) -> ErrorResponse | ValidateResponse | None:
     if response.status_code == 200:
         response_200 = ValidateResponse.from_dict(response.json())
 
         return response_200
 
     if response.status_code == 422:
-        response_422 = HTTPValidationError.from_dict(response.json())
+        response_422 = ErrorResponse.from_dict(response.json())
 
         return response_422
+
+    if response.status_code == 500:
+        response_500 = ErrorResponse.from_dict(response.json())
+
+        return response_500
 
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
@@ -51,7 +56,7 @@ def _parse_response(
 
 def _build_response(
     *, client: AuthenticatedClient | Client, response: httpx.Response
-) -> Response[HTTPValidationError | ValidateResponse]:
+) -> Response[ErrorResponse | ValidateResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -64,7 +69,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: ValidateRequest,
-) -> Response[HTTPValidationError | ValidateResponse]:
+) -> Response[ErrorResponse | ValidateResponse]:
     """Validate number format and check digit
 
      Checks the format and the check digit. The check digit applies to every number the register
@@ -80,7 +85,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[HTTPValidationError | ValidateResponse]
+        Response[ErrorResponse | ValidateResponse]
     """
 
     kwargs = _get_kwargs(
@@ -98,7 +103,7 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
     body: ValidateRequest,
-) -> HTTPValidationError | ValidateResponse | None:
+) -> ErrorResponse | ValidateResponse | None:
     """Validate number format and check digit
 
      Checks the format and the check digit. The check digit applies to every number the register
@@ -114,7 +119,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        HTTPValidationError | ValidateResponse
+        ErrorResponse | ValidateResponse
     """
 
     return sync_detailed(
@@ -127,7 +132,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: ValidateRequest,
-) -> Response[HTTPValidationError | ValidateResponse]:
+) -> Response[ErrorResponse | ValidateResponse]:
     """Validate number format and check digit
 
      Checks the format and the check digit. The check digit applies to every number the register
@@ -143,7 +148,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[HTTPValidationError | ValidateResponse]
+        Response[ErrorResponse | ValidateResponse]
     """
 
     kwargs = _get_kwargs(
@@ -159,7 +164,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
     body: ValidateRequest,
-) -> HTTPValidationError | ValidateResponse | None:
+) -> ErrorResponse | ValidateResponse | None:
     """Validate number format and check digit
 
      Checks the format and the check digit. The check digit applies to every number the register
@@ -175,7 +180,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        HTTPValidationError | ValidateResponse
+        ErrorResponse | ValidateResponse
     """
 
     return (
